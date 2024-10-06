@@ -1,0 +1,20 @@
+{
+  "name": "gltf-converter",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "An example on how to use ShapeDiver to create CAD file to glTF",
+  "private": true,
+  "author": "Alex Schiftner <alex@shapediver.com> (https://github.com/snabela/)",
+  "dependencies": {
+    "@shapediver/sdk.geometry-api-sdk-v2": "^1.12.1",
+    "@shapediver/viewer.utils.mime-type": "^1.1.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.10",
+    "typescript": "^5.6.2"
+  },
+  "scripts": {
+    "cli": "tsc && node dist/cli.js"
+  }
+}
