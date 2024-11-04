@@ -1,7 +1,9 @@
 import {
-    create,
-    ShapeDiverResponseOutput,
-    ShapeDiverSdkApiResponseType,
+    Configuration,
+    FileApi,
+    ResOutput,
+    SessionApi,
+    UtilsApi,
 } from '@shapediver/sdk.geometry-api-sdk-v2';
 import { guessMimeTypeFromFilename } from '@shapediver/viewer.utils.mime-type';
 import * as fs from 'fs/promises';
@@ -32,10 +34,12 @@ export async function cadToSdtf(options: ConvertOptions): Promise<void> {
     }
     const mimeType = mimeTypes[0];
 
+    // create configuration object for SDK
+    const config = new Configuration({ basePath: modelViewUrl });
+
     // create session
-    const sdk = create(modelViewUrl);
-    const sessionDto = await sdk.session.init(ticket);
-    const sessionId = sessionDto.sessionId!;
+    const sessionDto = (await new SessionApi(config).createSessionByTicket(ticket)).data;
+    const sessionId = sessionDto.sessionId;
 
     // get parameter of type "File"
     const fileParam = Object.values(sessionDto.parameters!).find(
@@ -50,36 +54,40 @@ export async function cadToSdtf(options: ConvertOptions): Promise<void> {
     const fileSize = Buffer.byteLength(fileContents);
 
     // request upload url
-    const uploadResponse = await sdk.file.requestUpload(sessionId, {
+    const uploadResponse = await new FileApi(config).uploadFile(sessionId, {
         [fileParam.id]: { format: mimeType, size: fileSize },
     });
-    const uploadDto = uploadResponse.asset!.file![fileParam.id];
+    const uploadDto = uploadResponse.data.asset.file[fileParam.id];
 
     // upload file to url
-    await sdk.utils.upload(uploadDto.href, fileContents, mimeType);
+    await new UtilsApi().uploadAsset(uploadDto.href, fileContents, uploadDto.headers);
 
     // run computation
-    const computationResponse = await sdk.utils.submitAndWaitForCustomization(sdk, sessionId, {
+    const computationResponse = await new UtilsApi(config).submitAndWaitForOutput(sessionId, {
         [fileParam.id]: uploadDto.id,
     });
 
     // get resulting sdTF url
     const outputResult = Object.values(computationResponse.outputs!).find((o) => {
-        const output = o as ShapeDiverResponseOutput;
+        const output = o as ResOutput;
         return (
             output.status_computation === 'success' &&
             output.content!.some((c) => c.format === 'sdtf')
         );
-    }) as ShapeDiverResponseOutput;
+    }) as ResOutput;
     if (!outputResult) {
         console.debug(JSON.stringify(computationResponse.outputs, null, 2));
         throw new Error('No resulting sdTF file found');
     }
     const item = outputResult.content!.find((c) => c.format === 'sdtf');
 
-    // download glTF file into buffer
-    const buffer = (await sdk.utils.download(item!.href!, ShapeDiverSdkApiResponseType.DATA))[1];
+    // download sdTF file into buffer
+    const sdtf = (await new UtilsApi().download(item!.href!, { responseType: 'arraybuffer' }))
+        .data as unknown as Buffer;
 
     // Write buffer to file at filepathOut
-    await fs.writeFile(filepathOut, new DataView(buffer));
+    await fs.writeFile(filepathOut, new DataView(sdtf.buffer, sdtf.byteOffset, sdtf.byteLength));
+
+    // close session
+    await new SessionApi(config).closeSession(sessionId);
 }
