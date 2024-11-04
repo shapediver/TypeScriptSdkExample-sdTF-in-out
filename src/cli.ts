@@ -1,10 +1,13 @@
-import 'dotenv/config'
+import 'dotenv/config';
 import { cadToSdtf } from './cadToSdtf.js';
 import { sdtfToGltf } from './sdtfToGltf.js';
 
 async function cli() {
     if (process.argv.length < 5) {
-        console.error('Usage: node dist/cli.js [cadToSdtf|sdtfToGltf] <filepathIn> <filepathOut>', process.argv);
+        console.error(
+            'Usage: node dist/cli.js [cadToSdtf|sdtfToGltf] <filepathIn> <filepathOut>',
+            process.argv
+        );
         process.exit(1);
     }
 
@@ -18,9 +21,14 @@ async function cli() {
     const filepathOut = process.argv[4];
 
     const modelViewUrl = process.env.MODEL_VIEW_URL;
-    const ticket = command === 'cadToSdtf' ? process.env.BACKEND_TICKET_CAD_TO_SDTF : process.env.BACKEND_TICKET_SDTF_TO_GLTF;
+    const ticket =
+        command === 'cadToSdtf'
+            ? process.env.BACKEND_TICKET_CAD_TO_SDTF
+            : process.env.BACKEND_TICKET_SDTF_TO_GLTF;
     if (!modelViewUrl || !ticket) {
-        console.error('MODEL_VIEW_URL and BACKEND_TICKET environment variables must be set in .env file');
+        console.error(
+            'MODEL_VIEW_URL and BACKEND_TICKET environment variables must be set in .env file'
+        );
         process.exit(1);
     }
 
