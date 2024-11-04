@@ -68,13 +68,13 @@ Run the tool:
 Step 1: Converts a CAD file `Example-CAD-file.3dm` to an sdTF file `Example-sdTF-File.sdtf`.
 
 ```
-npm run cli -- cadToSdtf Example-CAD-file.3dm Example-sdTF-File.sdtf
+npm run cli -- cadToSdtf Example-CAD-file.3dm Example-sdTF-file.sdtf
 ```
 
 Step 2: Convert the sdTF file `Example-sdTF-File.sdtf` to a glTF file `Example-glTF-File.glb`.
 
 ```
-npm run cli -- sdtfToGltf Example-sdTF-File.sdtf Example-glTF-File.glb
+npm run cli -- sdtfToGltf Example-sdTF-file.sdtf Example-glTF-file.glb
 ```
 
 You can view the resulting glTF file by dragging & dropping it onto the [glTF monster](https://viewer.shapediver.com/v3/latest/gltf/index.html).
